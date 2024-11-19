@@ -14,7 +14,7 @@ import (
 var (
 	//go:embed pages/*html
 	files  embed.FS
-	layout = "pages/layout.html"
+	layout = "pages/layouts.html"
 )
 
 type Server struct {
@@ -103,13 +103,17 @@ func (s *Server) broadcast(b []byte) {
 }
 
 func main() {
-	server := NewServer()
-	http.Handle("/ws", websocket.Handler(server.handleWS))
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/error", errorHandler)
-	fmt.Println("Server started at :11000")
-	err := http.ListenAndServe(":11000", nil)
-	if err != nil {
-		fmt.Println("Error starting server: ", err)
-	}
+	go func() {
+		server := NewServer()
+		http.Handle("/ws", websocket.Handler(server.handleWS))
+		http.HandleFunc("/", homeHandler)
+		http.HandleFunc("/error", errorHandler)
+		fmt.Println("Server started at :11000")
+		fmt.Println("Press enter to exit")
+		err := http.ListenAndServe(":11000", nil)
+		if err != nil {
+			fmt.Println("Error starting server: ", err)
+		}
+	}()
+	fmt.Scanln()
 }

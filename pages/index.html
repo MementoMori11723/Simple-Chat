@@ -1,0 +1,62 @@
+{{ define "title" }}Web Socket{{ end }} {{ define "header" }}
+<script>
+  let ws = new WebSocket("ws://localhost:11000/ws"),
+    div = !1;
+  function sendMessage() {
+    let e = document.getElementById("input"),
+      t = e.value;
+    t.trim() && (ws.send(t), (e.value = ""));
+  }
+  (ws.onmessage = function (e) {
+    console.log(e.data),
+      div ||
+      ((document.getElementById("message").innerHTML +=
+        '<div class="border-t border-teal-500 my-6"></div>'),
+        (div = !0)),
+      (document.getElementById("message").innerHTML +=
+        '<span class="mt-8">' + e.data + "</span><br>");
+  }),
+    document.addEventListener("DOMContentLoaded", (e) => {
+      let t = document.getElementById("blob");
+      if (!t) {
+        console.error("Blob element not found!");
+        return;
+      }
+      document.body.onpointermove = (e) => {
+        let {clientX: n, clientY: s} = e;
+        t.animate(
+          {transform: `translate(${n}px, ${s}px)`},
+          {duration: 3e3, fill: "forwards"},
+        );
+      };
+    });
+</script>
+{{ end }} {{ define "content" }}
+<div class="relative text-center py-12 px-6 sm:px-12 min-h-screen flex flex-col justify-center overflow-hidden"
+  style="background: linear-gradient(to bottom, #1e293b, #0f172a)">
+  <!-- Blob Animation -->
+  <div id="blob"
+    class="absolute w-48 h-48 bg-teal-500 opacity-30 rounded-full blur-3xl pointer-events-none transition-transform duration-200 ease-out"
+    style="transform: translate(-50%, -50%)"></div>
+
+  <h1 class="relative text-4xl font-semibold tracking-tight text-teal-400 sm:text-5xl md:text-6xl lg:text-7xl">
+    Web Socket
+  </h1>
+  <p class="relative mt-4 text-lg font-medium text-gray-300 sm:text-xl md:text-2xl">
+    Open the console to see the message from the server
+  </p>
+  <div id="message" class="relative mt-6 w-full max-w-lg mx-auto p-6 text-gray-200 bg-gray-800 shadow-lg text-left">
+    <p class="text-sm text-center text-gray-400">Messages will appear here.</p>
+  </div>
+
+  <div class="mt-4 flex gap-2 justify-center w-full max-w-lg mx-auto">
+    <textarea rows="2"
+      class="flex-1 rounded-lg border border-teal-500 py-2 px-3 text-gray-200 bg-gray-900 shadow-sm focus:ring-2 focus:ring-teal-400 focus:outline-none text-sm placeholder:text-gray-400"
+      id="input" placeholder="Type your message here"></textarea>
+    <button onclick="sendMessage()"
+      class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-teal-500 focus:ring-2 focus:ring-teal-500">
+      Send
+    </button>
+  </div>
+</div>
+{{ end }}

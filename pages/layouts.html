@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ template "title" . }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="dns-prefetch" href="//cdn.tailwindcss.com" />
+  <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  {{ block "header" . }}{{ end }}
+</head>
+
+<body>
+  {{ template "content" . }}
+</body>
+
+</html>

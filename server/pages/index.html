@@ -15,30 +15,11 @@
         (div = !0)),
       (document.getElementById("message").innerHTML +=
         '<span class="mt-8">' + e.data + "</span><br>");
-  }),
-    document.addEventListener("DOMContentLoaded", (e) => {
-      let t = document.getElementById("blob");
-      if (!t) {
-        console.error("Blob element not found!");
-        return;
-      }
-      document.body.onpointermove = (e) => {
-        let {clientX: n, clientY: s} = e;
-        t.animate(
-          {transform: `translate(${n}px, ${s}px)`},
-          {duration: 3e3, fill: "forwards"},
-        );
-      };
-    });
+  })
 </script>
 {{ end }} {{ define "content" }}
 <div class="relative text-center py-12 px-6 sm:px-12 min-h-screen flex flex-col justify-center overflow-hidden"
   style="background: linear-gradient(to bottom, #1e293b, #0f172a)">
-  <!-- Blob Animation -->
-  <div id="blob"
-    class="absolute w-48 h-48 bg-teal-500 opacity-30 rounded-full blur-3xl pointer-events-none transition-transform duration-200 ease-out"
-    style="transform: translate(-50%, -50%)"></div>
-
   <h1 class="relative text-4xl font-semibold tracking-tight text-teal-400 sm:text-5xl md:text-6xl lg:text-7xl">
     Web Socket
   </h1>

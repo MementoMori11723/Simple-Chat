@@ -1,6 +1,7 @@
 {{ define "title" }}Web Socket{{ end }} {{ define "header" }}
 <script>
-  let ws = new WebSocket("ws://localhost:11000/ws"),
+  const protocal = window.location.protocol === "https:" ? "wss" : "ws";
+  let ws = new WebSocket(`${protocal}://${window.location.host}/ws`),
     div = !1;
   function sendMessage() {
     let e = document.getElementById("input"),

@@ -8,6 +8,7 @@ import (
 )
 
 func (s *Server) HandleWS(ws *websocket.Conn) {
+  fmt.Println("route is :", ws.Request().PathValue("id"))
 	fmt.Println("New connection established - connection from: ", ws.RemoteAddr())
 	s.mu.Lock()
 	s.conn[ws] = true

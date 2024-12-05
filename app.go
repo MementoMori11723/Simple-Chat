@@ -13,7 +13,7 @@ func main() {
 	go func() {
 		server := socket.NewServer()
 		client := Server.New()
-		http.Handle("/ws", websocket.Handler(server.HandleWS))
+		http.Handle("/ws/{id}", websocket.Handler(server.HandleWS))
 		http.Handle("/", client)
 		fmt.Println("Server started at :11000")
 		fmt.Println("Press enter to exit")

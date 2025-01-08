@@ -1,5 +1,6 @@
-default_goal: run
+run :
+	@docker-compose -f compose.yml build
+	@docker-compose -f compose.yml up -d
 
-run:
-	@echo "Running the program..."
-	@go run .
+stop :
+	@docker-compose -f compose.yml down --remove-orphans

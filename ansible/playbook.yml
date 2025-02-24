@@ -3,6 +3,6 @@
   tasks:
     - name: Pull the latest changes and run the makefile
       shell: |
-        cd $HOME/Simple-Chat && git pull origin main && make stop && make
+        cd ~/Simple-Chat && git pull origin main && make stop && make
       args:
         executable: /bin/bash

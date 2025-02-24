@@ -3,6 +3,9 @@
   tasks:
     - name: Pull the latest changes and run the makefile
       shell: |
-          cd ~/Simple-Chat && git pull origin main && make stop && make ARGS="-d"
+          if [ -d $HOME/Simple-Chat ]; then
+            git clone https://github.com/MementoMori11723/Simple-Chat.git $HOME/Simple-Chat
+          fi
+          cd ~/Simple-Chat && git pull origin main && make stop && make prod 
       args:
         executable: /bin/bash

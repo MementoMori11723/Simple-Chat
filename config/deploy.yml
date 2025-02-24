@@ -10,12 +10,3 @@ services:
       - "11000:11000"
     volumes:
       - ../:/app
-    develop:
-      watch:
-        - path: ../
-          action: rebuild
-          ignore:
-            - ".git"
-            - "*.log"
-            - "*.env"
-            - "data"

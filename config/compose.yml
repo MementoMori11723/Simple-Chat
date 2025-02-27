@@ -3,13 +3,14 @@ services:
     build:
       context: ../
       dockerfile: config/Dockerfile
-    container_name: simple_chat
+    container_name: simple_chat-app
+    working_dir: /app
     env_file:
       - ../app.env
     ports:
       - "11000:11000"
-    volumes:
-      - ../:/app
+    networks:
+      - simple_chat-network
     develop:
       watch:
         - path: ../
@@ -19,3 +20,18 @@ services:
             - "*.log"
             - "*.env"
             - "data"
+
+  db:
+    image: redis:alpine
+    container_name: simple_chat-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - simple_chat-network
+
+networks:
+  simple_chat-network:
+    driver: bridge

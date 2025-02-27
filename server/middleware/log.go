@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -23,10 +24,14 @@ func Logger(next http.Handler) http.Handler {
 			w, http.StatusOK,
 		}
 		next.ServeHTTP(wrapperWriter, r)
-		if wrapperWriter.StatusCode == http.StatusOK {
-			slog.Info(r.Method + " " + r.URL.Path + " " + time.Since(start).String())
-		} else {
-			slog.Error(r.Method + " " + r.URL.Path + " " + time.Since(start).String())
+		msg := fmt.Sprintf("%s %s %s", r.Method, time.Since(start).String(), r.URL.Path)
+		switch wrapperWriter.StatusCode {
+		case http.StatusOK:
+			slog.Info(msg)
+		case http.StatusFound:
+			slog.Warn(msg)
+		default:
+			slog.Error(msg)
 		}
 	})
 }

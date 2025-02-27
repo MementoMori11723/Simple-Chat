@@ -1,0 +1,46 @@
+{{ define "content" }}
+<section>
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("test", () => ({
+        open: false,
+        socket: null,
+        msg: "",
+        ws_send: (txt) => {
+          txt = txt.trim();
+          if (txt === "" || txt === undefined) return;
+          socket.send(txt);
+        },
+        ws_connect() {
+          socket = new WebSocket("/ws/test");
+          socket.onmessage = (event) => {
+            this.msg += event.data + "<br>";
+          };
+        },
+      }));
+    });
+  </script>
+  <div x-data="test" x-init="ws_connect">
+    <h1>Under Working progress...</h1>
+    <button @click="open = !open" hx-get="/login" hx-trigger="click delay:1s" hx-target="#result" hx-swap="innerHTML">
+      Click me
+    </button>
+    <div x-show="open" x-transition x-cloak>
+      <p>Alpine.js is working!</p>
+      <div id="result">
+        <!-- Content will be loaded here -->
+      </div>
+    </div>
+    <input placeholder="Type your message here" x-ref="txt" />
+    <button @click="ws_send($refs.txt.value)">Send message</button>
+    <div id="ws-result" x-effect="$el.innerHTML = msg">
+      <!-- Websocket messages will be loaded here -->
+    </div>
+  </div>
+  <style>
+    [x-cloak] {
+      display: none;
+    }
+  </style>
+</section>
+{{ end }}

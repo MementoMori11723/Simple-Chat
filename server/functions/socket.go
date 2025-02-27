@@ -1,10 +1,9 @@
 package functions
 
 import (
-	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
-	"simple-chat/server/database"
 	"sync"
 
 	"golang.org/x/net/websocket"
@@ -13,22 +12,27 @@ import (
 type _server struct {
 	conn map[*websocket.Conn]bool
 	mu   sync.Mutex
+  maxConn int
 }
 
 func socket() *_server {
 	return &_server{
 		conn: make(map[*websocket.Conn]bool),
+    maxConn: 3,
 	}
 }
 
 func SocketHandler() http.Handler {
-  go database.Test()
-  return websocket.Handler(socket().HandleWS)
+	return websocket.Handler(socket().HandleWS)
 }
 
 func (s *_server) HandleWS(ws *websocket.Conn) {
-  fmt.Println("route is :", ws.Request().PathValue("id"))
-	fmt.Println("New connection established - connection from: ", ws.RemoteAddr())
+  if len(s.conn) >= s.maxConn {
+    slog.Error("Max connections reached", "Total connections", len(s.conn))
+    ws.Write([]byte("Max connections reached, try again later!"))
+    ws.Close()
+    return
+  }
 	s.mu.Lock()
 	s.conn[ws] = true
 	s.mu.Unlock()
@@ -41,13 +45,15 @@ func (s *_server) readLoop(ws *websocket.Conn) {
 		n, err := ws.Read(buf)
 		if err != nil {
 			if err == io.EOF {
-				fmt.Println("Connection closed by client: ", ws.RemoteAddr())
 				s.mu.Lock()
 				delete(s.conn, ws)
 				s.mu.Unlock()
 				break
 			}
-			fmt.Println("Error reading from connection: ", err)
+			slog.Error(
+				"Error reading from connection: ",
+				"Error", err.Error(),
+			)
 			continue
 		}
 		msg := buf[:n]
@@ -60,7 +66,10 @@ func (s *_server) broadcast(b []byte) {
 	for ws := range s.conn {
 		go func(ws *websocket.Conn) {
 			if _, err := ws.Write(b); err != nil {
-				fmt.Println("Error broadcasting message: ", err)
+				slog.Error(
+					"Error broadcasting message: ",
+					"Error", err.Error(),
+				)
 			}
 		}(ws)
 	}

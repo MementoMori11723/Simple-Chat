@@ -30,7 +30,7 @@ func TestConnection() {
   }
 }
 
-func add(key string, value string, expire time.Duration) {
+func Add(key string, value string, expire time.Duration) {
   rdb := connect()
   err := rdb.Set(context.Background(), key, value, expire).Err()
   if err != nil {
@@ -41,7 +41,7 @@ func add(key string, value string, expire time.Duration) {
   }
 }
 
-func get_data(key string) string {
+func Get_data(key string) string {
   rdb := connect()
   val, err := rdb.Get(context.Background(), key).Result()
   if err != nil {
@@ -53,7 +53,7 @@ func get_data(key string) string {
   return val
 }
 
-func get_keys(key string) string {
+func Get_keys(key string) string {
   rdb := connect()
   val, err := rdb.Keys(context.Background(), key).Result()
   if err != nil {
@@ -67,7 +67,7 @@ func get_keys(key string) string {
   return val[0]
 }
 
-func _delete(key string) {
+func Delete(key string) {
   rdb := connect()
   err := rdb.Del(context.Background(), key).Err()
   if err != nil {

@@ -1,4 +1,4 @@
-package functions
+package api
 
 import (
 	"crypto/sha256"
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"simple-chat/server/functions"
 	"strings"
 	"time"
 
@@ -32,7 +33,6 @@ type response struct {
 func Login(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	slog.Info("Password", "Value", password)
 	data := request{
 		Username: strings.TrimSpace(username),
 		Password: strings.TrimSpace(password),
@@ -57,8 +57,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	confirm_password := r.FormValue("confirm-password")
-	slog.Info("Password", "Value", password)
-	slog.Info("C-Password", "Value", confirm_password)
 	data := request{
 		Email:           strings.TrimSpace(email),
 		Username:        strings.TrimSpace(username),
@@ -113,13 +111,13 @@ func responseError(w http.ResponseWriter, err error) {
 
 func generate_token(r request, is_login bool) (string, error) {
 	if is_login {
-		key := get_keys(
+		key := functions.Get_keys(
 			fmt.Sprintf(
 				"user:%s:passwd:%s:email:*",
 				r.Username, r.Password,
 			),
 		)
-		data := get_data(key)
+		data := functions.Get_data(key)
 		if data == "" {
 			return "", errors.New("User not found")
 		}
@@ -139,7 +137,7 @@ func generate_token(r request, is_login bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	add(
+	functions.Add(
 		fmt.Sprintf(
 			"user:%s:passwd:%s:email:%s",
 			r.Username, r.Password, r.Email,

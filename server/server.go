@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"simple-chat/server/functions"
+	"simple-chat/server/functions/api"
 	"simple-chat/server/middleware"
 )
 
@@ -29,8 +30,8 @@ var (
 		"/error": errorFunc,
 		"/404":   pageNotFound,
 
-		"POST /signup": functions.Signup,
-		"POST /login":  functions.Login,
+		"POST /signup": api.Signup,
+		"POST /login":  api.Login,
 	}
 )
 

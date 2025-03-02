@@ -1,46 +1,43 @@
-{{ define "content" }}
-<section>
+{{define "content"}}
+<section class="h-full">
   <script>
-    document.addEventListener("alpine:init", () => {
-      Alpine.data("test", () => ({
-        open: false,
-        socket: null,
-        msg: "",
-        ws_send: (txt) => {
-          txt = txt.trim();
-          if (txt === "" || txt === undefined) return;
-          socket.send(txt);
-        },
-        ws_connect() {
-          socket = new WebSocket("/ws/test");
-          socket.onmessage = (event) => {
-            this.msg += event.data + "<br>";
-          };
-        },
-      }));
-    });
+    const home_page = {
+      open: false,
+      socket: null,
+      msg: "",
+      ws_send(txt) {
+        txt = txt.trim();
+        if (txt === "" || txt === undefined) return;
+        socket.send(txt);
+      },
+      ws_connect() {
+        socket = new WebSocket("/ws/test");
+        socket.onmessage = (event) => {
+          this.msg += event.data + "<br>";
+        };
+      },
+    };
   </script>
-  <div x-data="test" x-init="ws_connect">
-    <h1>Under Working progress...</h1>
-    <button @click="open = !open" hx-get="/login" hx-trigger="click delay:1s" hx-target="#result" hx-swap="innerHTML">
-      Click me
-    </button>
-    <div x-show="open" x-transition x-cloak>
-      <p>Alpine.js is working!</p>
-      <div id="result">
-        <!-- Content will be loaded here -->
-      </div>
-    </div>
-    <input placeholder="Type your message here" x-ref="txt" />
-    <button @click="ws_send($refs.txt.value)">Send message</button>
+  <div
+    x-data="home_page"
+    x-init="ws_connect"
+    class="mt-6 flex max-w-md gap-x-4"
+  >
     <div id="ws-result" x-effect="$el.innerHTML = msg">
       <!-- Websocket messages will be loaded here -->
     </div>
+    <textarea
+      placeholder="Type your message here..."
+      style="resize: vertical"
+      class="min-w-0 flex-auto rounded-md bg-white/5 px-3.5 py-2 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+      x-ref="txt"
+    ></textarea>
+    <button
+      @click="ws_send($refs.txt.value)"
+      class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+    >
+      Send message
+    </button>
   </div>
-  <style>
-    [x-cloak] {
-      display: none;
-    }
-  </style>
 </section>
-{{ end }}
+{{end}}

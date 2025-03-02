@@ -30,7 +30,7 @@ func TestConnection() {
   }
 }
 
-func Add(key string, value string, expire time.Duration) {
+func add(key string, value string, expire time.Duration) {
   rdb := connect()
   err := rdb.Set(context.Background(), key, value, expire).Err()
   if err != nil {
@@ -41,7 +41,7 @@ func Add(key string, value string, expire time.Duration) {
   }
 }
 
-func Get(key string) string {
+func get_data(key string) string {
   rdb := connect()
   val, err := rdb.Get(context.Background(), key).Result()
   if err != nil {
@@ -53,7 +53,21 @@ func Get(key string) string {
   return val
 }
 
-func Delete(key string) {
+func get_keys(key string) string {
+  rdb := connect()
+  val, err := rdb.Keys(context.Background(), key).Result()
+  if err != nil {
+    slog.Error("Error in getting value from redis", "Error - msg", err.Error())
+    return ""
+  }
+  if len(val) > 1 {
+    slog.Error("Error in getting value from redis", "Error - msg", "Too many Values!")
+    return ""
+  }
+  return val[0]
+}
+
+func _delete(key string) {
   rdb := connect()
   err := rdb.Del(context.Background(), key).Err()
   if err != nil {

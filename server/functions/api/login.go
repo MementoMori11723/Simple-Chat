@@ -7,8 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"simple-chat/config"
 	"simple-chat/server/functions"
 	"strings"
 	"time"
@@ -16,7 +19,17 @@ import (
 	"github.com/google/uuid"
 )
 
-var redirect = "/"
+var (
+	redirect = "/"
+
+	client_id     string
+	client_secret string
+
+	redirect_uri  = "http://localhost:11000/google/callback"
+	auth_url      = "https://accounts.google.com/o/oauth2/auth"
+	google_token  = "https://oauth2.googleapis.com/token"
+	user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+)
 
 type request struct {
 	Username        string
@@ -28,6 +41,11 @@ type request struct {
 type response struct {
 	Token string `json:"token"`
 	Route string `json:"route"`
+}
+
+func init() {
+	client_id = config.Get_Client_id()
+	client_secret = config.Get_Client_secret()
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +96,55 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}.write(w)
 }
 
+func GoogleAuth(w http.ResponseWriter, r *http.Request) {
+  slog.Info(client_id)
+	json.NewEncoder(w).Encode(map[string]string{
+		"url": fmt.Sprintf(
+			"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=email+profile",
+			auth_url, client_id, redirect_uri,
+		),
+	})
+}
+
+func GoogleCallback(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "Authorization code not found", http.StatusBadRequest)
+		return
+	}
+	data := url.Values{}
+	data.Set("client_id", client_id)
+	data.Set("client_secret", client_secret)
+	data.Set("redirect_uri", redirect_uri)
+	data.Set("grant_type", "authorization_code")
+	data.Set("code", code)
+	res, err := http.PostForm(google_token, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer res.Body.Close()
+	var tokenResp struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&tokenResp); err != nil {
+		http.Error(w, "Failed to parse token response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	req, _ := http.NewRequest("GET", user_info_url, nil)
+	req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
+	userResp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, "Failed to fetch user info: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer userResp.Body.Close()
+	body, _ := io.ReadAll(userResp.Body)
+  // need to modify this later!
+  json.Marshal(body)
+  http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func (r response) write(w http.ResponseWriter) {
 	data, err := json.Marshal(r)
 	if err != nil {
@@ -109,6 +176,7 @@ func responseError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusBadRequest)
 }
 
+// need to adjust this function also!
 func generate_token(r request, is_login bool) (string, error) {
 	if is_login {
 		key := functions.Get_keys(

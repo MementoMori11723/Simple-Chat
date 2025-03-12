@@ -14,7 +14,10 @@ import (
 
 var (
 	//go:embed pages/*html
-	files  embed.FS
+	files embed.FS
+	//go:embed assets/*
+	assets embed.FS
+
 	pages  = "pages/"
 	layout = pages + "layout.html"
 
@@ -24,14 +27,20 @@ var (
 	loginTmpl *template.Template
 
 	routes = map[string]http.HandlerFunc{
+		// Page routes
 		"/":      home,
 		"/about": about,
 		"/login": login,
 		"/error": errorFunc,
 		"/404":   pageNotFound,
 
+		// Login routes
 		"POST /signup": api.Signup,
 		"POST /login":  api.Login,
+		"POST /google": api.GoogleAuth,
+
+		// Google Callback
+		"/google/callback": api.GoogleCallback,
 	}
 )
 
@@ -62,7 +71,11 @@ func getTemplate(name string) *template.Template {
 
 func New() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("/ws/{id}", functions.SocketHandler())
+	fs := http.FileServerFS(assets)
+	mux.Handle("/assets/", middleware.Logger(
+		http.StripPrefix("/", fs),
+	))
+	mux.Handle("/ws/{id}",functions.SocketHandler())
 	for route, handler := range routes {
 		mux.Handle(route, middleware.Logger(handler))
 	}

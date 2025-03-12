@@ -1,60 +1,7 @@
+<!-- Login Page Template -->
 {{define "content"}}
-<!-- Login Page -->
 <section class="h-full">
-  <script>
-    const login_page = {
-      login: true,
-      error: false,
-      title() {
-        sessionStorage.setItem("login", this.login);
-        document.title = `${this.login ? "Login" : "Sign Up"} | ${document.title}`;
-      },
-      get_state() {
-        data = sessionStorage.getItem("login");
-        if (!data) return;
-        this.login = data === "true";
-      },
-      error_message(error) {
-        this.error = true;
-        this.$refs.error_msg.innerText = error.message;
-        setTimeout(() => {
-          this.error = false;
-        }, 5000);
-      },
-      async hash_data(value) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(value);
-        const hash_buff = await crypto.subtle.digest("SHA-256", data);
-        return Array.from(new Uint8Array(hash_buff))
-          .map(byte => byte.toString(16).padStart(2, "0"))
-          .join("");
-      },
-      async forn_submit() {
-        let formData = new FormData(this.$el);
-        const password = formData.get("password");
-        if (password) formData.set("password", await this.hash_data(password))
-        const c_password = formData.get("confirm-password");
-        if (c_password) formData.set("confirm-password", await this.hash_data(c_password))
-        console.log(formData)
-        try {
-          let response = await fetch(this.login ? "/login" : "/signup", {
-            method: "POST",
-            body: formData,
-          });
-          if (!response.ok) throw new Error(await response.text());
-          const json_data = response.headers.get("X-Auth-Token");
-          const {token, route} = JSON.parse(json_data);
-          if (!token || !route)
-            throw new Error("Login failed with no data or route");
-          sessionStorage.setItem("token", token);
-          window.location.href = route;
-          sessionStorage.setItem("login", !this.login ? "true" : this.login);
-        } catch (error) {
-          this.error_message(error);
-        }
-      },
-    };
-  </script>
+  <script src="/assets/functions/login.js"></script>
   <div x-data="login_page" x-init="get_state(); title();" @notify="title"
     class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
     <!-- Login Form div -->
@@ -74,33 +21,72 @@
       </div>
 
       <!-- Login/signup Form -->
-      <form class="space-y-6" @submit.prevent="forn_submit">
+      <form class="space-y-6" @submit.prevent="form_submit">
         <!-- Login form input field -->
-        <template x-if="login">
-          <template x-for="field in [
-          {name:'username', label:'Username', complete:'username', type:'text', placeholder:'eg. user_name_123'},
-          {name:'password', label:'Password', complete:'current-password', type:'password', placeholder:'eg. xxxxxxxx'},
-          ]">
+        <template x-if="login && !forgot">
+          <template x-for="field in login_data">
             {{template "input" .}}
           </template>
         </template>
 
         <!-- Signup form input field -->
         <template x-if="!login">
-          <template x-for="field in [
-            {name:'username', label:'Username', complete:'username', type:'text', placeholder:'eg. user_name_123'},
-            {name:'email', label:'Email', complete:'email', type:'text', placeholder:'eg. user@email.com'},
-            {name:'password', label:'Password', complete:'new-password', type:'password', placeholder:'eg. xxxxxxxx'},
-            {name:'confirm-password', label:'Confirm Password', complete:'new-password', type:'password', placeholder:'eg. xxxxxxxx'},
-          ]">
+          <template x-for="field in signup_data">
             {{template "input" .}}
           </template>
         </template>
 
+        <!-- Forgot form input field -->
+        <template x-if="login && forgot">
+          <div>
+            <div x-show="!otp">
+              <template
+                x-for="field in [{ name: 'email', label: 'Email', complete: 'email', type: 'text', placeholder: 'eg. user@email.com' }]">
+                {{template "input" .}}
+              </template>
+              <button
+                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 shadow-md mb-5" type="button"
+                @click="otp = !otp">Send OTP</button>
+            </div>
+            <div x-show="otp">
+              <template
+                x-for="field in [{ name: 'otp', label: 'One Time Password', complete: 'text', type: 'text', placeholder: 'eg. 123456' }]">
+                {{template "input" .}}
+              </template>
+            </div>
+          </div>
+        </template>
+
         <!-- Login/signup Button -->
-        <button x-text="login ? 'Login' : 'Sign Up'" type="submit"
-          class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"></button>
+        <button x-show="!forgot || (forgot && otp)" x-text="login ? 'Login' : 'Sign Up'" type="submit"
+          class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 shadow-md"></button>
+
+        <!-- Forgot Password -->
+        <p class="text-left text-sm text-gray-500" x-show="login">
+          <a @click="forgot = !forgot; if (otp) otp = !otp" class="font-semibold text-indigo-600 hover:text-indigo-500 underline"
+            x-text="login && !forgot ? 'Forgot Password?' : 'Return to login'">
+          </a>
+        </p>
       </form>
+
+      <!-- Seperator line -->
+      <div class="inline-flex items-center justify-center w-full">
+        <hr class="w-64 h-px my-5 bg-gray-200 border-0">
+        <span class="absolute px-3 font-medium text-gray-900 -translate-x-1/2 bg-white left-1/2">or</span>
+      </div>
+
+      <!-- Google login -->
+      <button
+        class="flex w-full justify-center items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-md hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 border border-gray-300"
+        @click="google_login">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+          class="icon icon-tabler icons-tabler-filled icon-tabler-brand-google">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path
+            d="M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z" />
+        </svg>
+        Login with Google
+      </button>
 
       <!-- Signup/Login Link -->
       <p class="mt-10 text-center text-sm/6 text-gray-500">
@@ -119,7 +105,7 @@
 <div class="space-y-1 mb-4" x-data="{ disable: false }">
   <label :for="field.name" class="block text-sm/6 font-medium text-gray-900" x-text="field.label"></label>
   <input
-    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 border-2 border-indigo-100 focus:border-transparent"
+    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-700 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 border-2 border-indigo-100 focus:border-transparent"
     :type="field.type" :name="field.name" :id="field.name" :autocomplete="field.complete"
     :placeholder="field.placeholder" required />
 </div>

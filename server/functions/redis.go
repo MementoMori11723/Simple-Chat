@@ -77,3 +77,7 @@ func Delete(key string) {
     slog.Info("Key deleted from redis", "Key", key)
   }
 }
+
+func Encrypt() {}
+
+func Decrypt() {}

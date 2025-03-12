@@ -1,5 +1,29 @@
-{{define "content"}}
-<section>
-  <h1>About</h1>
+{{ define "content" }}
+<section class="min-h-screen flex items-center justify-center px-6">
+  <div class="max-w-3xl w-full bg-white p-10 rounded-xl border-2 border-indigo-400 shadow-2xl text-center">
+    <h1 class="text-4xl font-semibold text-indigo-600 mb-5">About Simple Chat App</h1>
+    <p class="text-lg text-gray-700 mb-6">
+      Simple Chat App is a real-time messaging platform that uses WebSockets to provide instant communication between users.
+    </p>
+    <div class="border-t border-gray-300 my-6"></div>
+    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Features</h2>
+    <ul class="text-lg text-gray-700 space-y-3 text-left max-w-md mx-auto">
+      <li>&#8226; Real-time messaging using WebSockets</li>
+      <li>&#8226; Lightweight and fast performance</li>
+      <li>&#8226; Secure and private conversations</li>
+      <li>&#8226; Easy-to-use interface</li>
+    </ul>
+    <div class="border-t border-gray-300 my-6"></div>
+    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Get in Touch</h2>
+    <p class="text-lg text-gray-700 mb-6">Have questions or need support? Feel free to contact us.</p>
+    <div class="flex justify-center gap-4">
+      <a href="/contact" class="rounded-md bg-indigo-600 px-4 py-2.5 text-md font-semibold text-white shadow-md hover:bg-indigo-500 transition">
+        Contact Us
+      </a>
+      <a href="/" class="text-md font-semibold text-gray-900">
+        Back to Home <span aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </div>
 </section>
-{{end}}
+{{ end }}

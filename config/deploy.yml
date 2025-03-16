@@ -16,7 +16,7 @@ services:
 
 networks:
   deploy_net:
-    driver: bridge
+    external: true
 
 volumes:
   deploy_sqlite_dir:

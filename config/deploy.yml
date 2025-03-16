@@ -3,26 +3,21 @@ services:
     build:
       context: ../
       dockerfile: config/Dockerfile
-    container_name: simple_chat-app
+    container_name: chat-app
     working_dir: /app
     env_file:
       - ../app.env
-    ports:
-      - "11000:11000"
+    expose:
+      - "11000"
+    volumes:
+      - deploy_sqlite_dir:/data
     networks:
-      - simple_chat-network
-
-  db:
-    image: redis:alpine
-    container_name: simple_chat-redis
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - simple_chat-network
+      - deploy_net
 
 networks:
-  simple_chat-network:
+  deploy_net:
     driver: bridge
+
+volumes:
+  deploy_sqlite_dir:
+    external: true
